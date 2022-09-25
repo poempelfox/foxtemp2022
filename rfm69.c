@@ -81,11 +81,13 @@ void rfm69_setsleep(uint8_t s) {
   if (s) {
     /* RegOpMode => SLEEP */
     rfm69_writereg(0x01, (rfm69_readreg(0x01) & 0xE3) | 0x00);
-    /* FIXME4? PRR |= _BV(PRUSI); */
+    /* Disable SPI and USART0 */
+    PRR |= _BV(PRSPI) | _BV(PRUSART0);
   } else {
     /* RegOpMode => STANDBY */
-    /* FIXME4? PRR &= (uint8_t)~_BV(PRUSI); */
-    /* FIXME4? USICR = _BV(USIWM0); */
+    PRR &= (uint8_t)~(_BV(PRSPI) | _BV(PRUSART0));
+    /* FIXME4? We should reinitialize USART0 after waking it,
+     * but we don't directly use it? */
     rfm69_writereg(0x01, (rfm69_readreg(0x01) & 0xE3) | 0x04);
     while (!(rfm69_readreg(0x27) & 0x80)) { /* Wait until ready */ }
   }

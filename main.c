@@ -136,14 +136,15 @@ int main(void)
   
   /* Disable unused chip parts and ports */
   /* We do not use any of the timers */
-  PRR |= _BV(PRTIM0) | _BV(PRTIM1);
+  PRR |= _BV(PRTIM0) | _BV(PRTIM1) | _BV(PRTIM2);
+  /* we don't use hardware TWI */
+  PRR |= _BV(PRTWI);
   /* Disable analog comparator */
   ACSR |= _BV(ACD);
-  /* Disable unneeded digital input registers for ADC pin PA2 (used for voltage
-   * measurement) and PA7 (unused/floating). */
-  /* FIXME4 DIDR0 |= _BV(ADC2D); */
-  /* FIXME4 DIDR0 |= _BV(ADC7D); */
-  /* FIXME4 PORTA |= _BV(PA7); */
+  /* Disable unneeded digital input registers for all unused ADC pins
+   * (they can cause significant power drain in some conditions).
+   * Do not disable them for AIN0/1 aka PD6/7, they are in use! */
+  DIDR0 |= _BV(ADC5D) | _BV(ADC4D) | _BV(ADC3D) | _BV(ADC2D) | _BV(ADC1D) | _BV(ADC0D);
   /* PD2 is the IRQ line from the RFM69. We don't use it. Make sure that pin
    * is tristated on our side (it won't float, the RFM69 pulls it) */
   PORTD &= (uint8_t)~_BV(PD2);
@@ -161,7 +162,9 @@ int main(void)
   uint8_t mlcnt = 0;
   uint8_t readerrcnt = 0;
   while (1) { /* Main loop, we should never exit it. */
+#ifdef BLINKLED
     PORTB |= _BV(PB1);
+#endif /* BLINKLED */
     mlcnt++;
     if (mlcnt > transmitinterval) {
       rfm69_setsleep(0);  /* This mainly turns on the oscillator again */
@@ -191,11 +194,13 @@ int main(void)
       uint16_t adcval = adc_read();
       adc_power(0);
       /* we have the battery pack directly connected without a
-       * voltage divider, so no need to calculate voltage level.
-       * However, foxtemp2016 did have a voltage divider, returning
-       * 10/11 of the real voltage, so to be compatible we need
-       * to emulate that. */
-      batvolt = (adcval >> 2) * 11 / 10;
+       * voltage divider, while foxtemp2016 did have a voltage
+       * divider, returning 10/11 of the real voltage. However,
+       * it was also operating at 3.0V, while we run at 3.3V.
+       * The factor between that is 11/10, which means that by
+       * pure accident our reported voltage values are exactly
+       * compatible with foxtemp2016 without any conversion. */
+      batvolt = adcval >> 2;
       prepareframe();
       rfm69_sendarray(frametosend, 10);
       pktssent++;
@@ -205,7 +210,9 @@ int main(void)
       rfm69_setsleep(1);
       mlcnt = 0;
     }
+#ifdef BLINKLED
     PORTB &= (uint8_t)~_BV(PB1);
+#endif /* BLINKLED */
     wdt_reset();
     sleep_cpu(); /* Go to sleep until the watchdog timer wakes us */
     /* We should only reach this if we were just woken by the watchdog timer.

@@ -10,6 +10,7 @@ INCDIR	= .
 # mainly to save space in case you are running out of flash.
 # You can add them here.
 #  -DRFM_DATARATE=9579.0 or 17241.0. This defaults to 17241
+#  -DBLINKLED  Blink the LED on the board whenever we're not asleep (for debugging)
 ADDDEFS	= 
 
 # The port on which the programmer is connected?
