@@ -1,0 +1,11 @@
+*.o
+foxtemp2022.bin
+foxtemp2022.elf
+foxtemp2022.hex
+foxtemp2022.lst
+foxtemp2022.map
+foxtemp2022.srec
+foxtemp2022_eeprom.bin
+foxtemp2022_eeprom.hex
+foxtemp2022_eeprom.srec
+
