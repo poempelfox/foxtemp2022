@@ -26,7 +26,7 @@ AVRDMCU	= m328p
 
 # Some more settings
 # Clock Frequency of the AVR. Needed for various calculations.
-CPUFREQ		= 1000000UL
+CPUFREQ		= 250000UL
 
 SRCS	= adc.c eeprom.c main.c rfm69.c sht4x.c
 PROG	= foxtemp2022
@@ -72,13 +72,14 @@ hostreceiverforjeelink: hostreceiverforjeelink.c
 	gcc -o hostreceiverforjeelink -Wall -Wno-pointer-sign -O2 -DBRAINDEADOS hostreceiverforjeelink.c
 
 fuses:
-	@echo "If you want to be safe, the fuses should be set for a BODlevel"
-	@echo "of 2.7 volts. Something along the lines of:"
-	@echo "  avrdude ... -U hfuse:w:0xd5:m"
-	@echo "However, that uses up 0,03 mA of power, in other words, it almost"
-	@echo "doubles the power consumption. To disable BODlevel, set hfuse"
-	@echo "to 0xd7 instead, but be warned that the longterm stability of that"
-	@echo "is untested/unknown."
+	@echo "Fuses are fixed on the microcontroller board, you cannot"
+	@echo "change them through optiboot, only through ISP - and with"
+	@echo "most changes you'll then have to flash a new matching optiboot"
+	@echo "version too."
+	@echo "Fuses according to documentation are:"
+	@echo "ext: 0xFD    hi: 0xDC    lo: 0xDE"
+	@echo "(Brown-Out-Detector on at Level 2.7V, 512 byte bootloader size,"
+	@echo " low power crystal oscillator 8-16 mhz)"
 
 upload: uploadflash uploadeeprom
 

@@ -110,9 +110,9 @@ ISR(WDT_vect)
 int main(void)
 {
   /* Initialize stuff */
-  /* Clock down to 1 MHz. */
+  /* Clock down from 16.0 to 0.25 MHz. */
   CLKPR = _BV(CLKPCE);
-  CLKPR = _BV(CLKPS2);
+  CLKPR = _BV(CLKPS2) | _BV(CLKPS1);
   
   _delay_ms(1000); /* Wait. */
 
@@ -133,7 +133,7 @@ int main(void)
   /* Prepare sleep mode */
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);
   sleep_enable();
-  
+
   /* Disable unused chip parts and ports */
   /* We do not use any of the timers */
   PRR |= _BV(PRTIM0) | _BV(PRTIM1) | _BV(PRTIM2);
@@ -214,6 +214,11 @@ int main(void)
     PORTB &= (uint8_t)~_BV(PB1);
 #endif /* BLINKLED */
     wdt_reset();
+    /* Disable Brown-Out-Detector during sleep to save power.
+     * Timed sequence, both lines setting it are needed even though
+     * they might seem redundant, and they must not be executed
+     * more than 4 cycle before going to sleep. */
+    sleep_bod_disable();
     sleep_cpu(); /* Go to sleep until the watchdog timer wakes us */
     /* We should only reach this if we were just woken by the watchdog timer.
      * We need to re-enable the watchdog-interrupt-flag, else the next watchdog

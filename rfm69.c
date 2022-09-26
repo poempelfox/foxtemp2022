@@ -86,8 +86,10 @@ void rfm69_setsleep(uint8_t s) {
   } else {
     /* RegOpMode => STANDBY */
     PRR &= (uint8_t)~(_BV(PRSPI) | _BV(PRUSART0));
-    /* FIXME4? We should reinitialize USART0 after waking it,
-     * but we don't directly use it? */
+    /* Manual says we should reinitialize USART0 and SPI after waking it */
+    /* set master mode with rate clk/16 = 1 MHz */
+    SPCR = _BV(SPE) | _BV(MSTR) | _BV(SPR0);
+    SPSR = 0x00; /* To set SPI2X to 0, rest is read-only anyways */
     rfm69_writereg(0x01, (rfm69_readreg(0x01) & 0xE3) | 0x04);
     while (!(rfm69_readreg(0x27) & 0x80)) { /* Wait until ready */ }
   }
@@ -142,8 +144,8 @@ void rfm69_initport(void) {
   RFMPORT |= _BV(RFMPIN_SS);
   RFMDDR |= _BV(RFMPIN_SS);
   /* Enable hardware SPI, no need to manually do it.
-   * set master mode with rate clk/4 = 2 MHz (maximum of RFM69 is unknown) */
-  SPCR = _BV(SPE) | _BV(MSTR);
+   * set master mode with rate clk/16 = 1 MHz (maximum of RFM69 is unknown) */
+  SPCR = _BV(SPE) | _BV(MSTR) | _BV(SPR0);
   SPSR = 0x00; /* To set SPI2X to 0, rest is read-only anyways */
 }
 
