@@ -157,10 +157,13 @@ void rfm69_initchip(void) {
   /* RegFDevMsb / RegFDevLsb -> 0x05C3 (90 kHz). */
   rfm69_writereg(0x05, 0x05);
   rfm69_writereg(0x06, 0xC3);
-  /* RegPaLevel -> Pa0=0 Pa1=1 Pa2=0 Outputpower=31 -> 13 dbM */
-  rfm69_writereg(0x11, 0x5F);
-  /* RegOcp -> defaults (jeelink-sketch sets 0 but that seems wrong) */
-  rfm69_writereg(0x13, 0x1a);
+  /* RegPaLevel -> Pa0=0 Pa1=1 Pa2=1 Outputpower=28 -> 14 dbM */
+  /* The Canique has a RFM69HW which could actually do 20 dbM, but
+   * unfortunately, at 868.3 MHz only 25 mW/14 dbM are permitted in
+   * Europe. */
+  rfm69_writereg(0x11, 0x40 | 0x20 | 28);
+  /* RegOcp -> Over-Current-Protection: permit 120 mA */
+  rfm69_writereg(0x13, 0x1f);
   /* RegRxBw -> DccFreq 010   Mant 16   Exp 2 - this is a receiver-register,
    * we do not really care about it */
   rfm69_writereg(0x19, 0x42);
